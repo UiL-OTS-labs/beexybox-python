@@ -252,6 +252,46 @@ bxyQueryInfo2.restype   = ct.c_int
 # beeyxbox, enum bxyQuery2Type, char buffer, buffer length
 bxyQueryInfo2.argtypes  = ct.c_void_p, ct.c_int, ct.c_void_p, ct.c_int
 
+bxyGetName              = libBB.bxyGetName
+bxyGetName.restype      = ct.c_int
+#bxyGetName.argtypes     = ct.c_void_p, ct.c_char_p, ct.c_int, ct.c_int
+
+bxySetName              = libBB.bxySetName
+bxySetName.restype      = ct.c_int
+bxySetName.argtypes     = ct.c_void_p, ct.c_char_p, ct.c_bool
+
+bxyGetUSBDownstreamLatency          = libBB.bxyGetUSBDownstreamLatency
+bxyGetUSBDownstreamLatency.restype  = ct.c_int
+bxyGetUSBDownstreamLatency.argtypes = ct.c_void_p, ct.c_uint
+
+bxySetUSBDownstreamLatency          = libBB.bxySetUSBDownstreamLatency
+bxySetUSBDownstreamLatency.restype  = ct.c_int
+bxySetUSBDownstreamLatency.argtypes = ct.c_void_p, ct.c_uint, ct.c_bool
+
+bxyGetRS232DownstreamLatency            = libBB.bxyGetRS232DownstreamLatency
+bxyGetRS232DownstreamLatency.restype    = ct.c_int
+bxyGetRS232DownstreamLatency.argtypes   = ct.c_void_p, ct.c_uint
+
+bxySetRS232DownstreamLatency            = libBB.bxySetRS232DownstreamLatency
+bxySetRS232DownstreamLatency.restype    = ct.c_int
+bxySetRS232DownstreamLatency.argtypes   = ct.c_void_p, ct.c_uint, ct.c_bool
+
+bxyGetUARTBaudRate          = libBB.bxyGetUARTBaudRate
+bxyGetUARTBaudRate.restype  = ct.c_int
+bxyGetUARTBaudRate.argtypes = ct.c_void_p, ct.c_int
+
+bxySetUARTBaudRate          = libBB.bxySetUARTBaudRate
+bxySetUARTBaudRate.restype  = ct.c_int
+bxySetUARTBaudRate.argtypes = ct.c_void_p, ct.c_int, ct.c_bool
+
+bxyGetFeatureFlags          = libBB.bxyGetFeatureFlags
+bxyGetFeatureFlags.restype  = ct.c_int
+bxyGetFeatureFlags.argtypes = ct.c_void_p, ct.c_uint
+
+bxySetFeatureFlags          = libBB.bxySetFeatureFlags
+bxySetFeatureFlags.restype  = ct.c_int
+bxySetFeatureFlags.argtypes = ct.c_void_p, ct.c_uint
+
 ###############################################################################
 # Setting the callback functions for the beexybox.                            #
 ###############################################################################
@@ -419,11 +459,87 @@ class BeexyBox (object):
         if status:
             raise BeexyException(status)
 
+    def get_name(self, bufsize=256):
+        '''Gets name of the device'''
+        assert(self.bb)
+        buf = ct.create_string_buffer(bufsize)
+        outsize = ct.c_uint(0)
+        status = bxyGetName(self.bb, ct.byref(buf), bufsize, ct.byref(outsize))
+        if status:
+            raise BeexyException(status)
+        return buf.value, outsize.value
 
+    def set_name(self, name):
+        """Set the name of the device."""
+        assert(self.bb)
+        status = bxySetName(self.bb, name)
+        if status:
+            raise BeexyException(status)
 
+    def get_usb_downstream_latency(self):
+        '''Get the usb downstream latency.'''
+        assert(self.bb)
+        lat = ct.c_uint(0)
+        status = bxyGetUSBDownstreamLatency(self.bb, lat)
+        if status:
+            raise BeexyException(status)
+        return int(lat)
+
+    def set_usb_downstream_latency(self, latency):
+        '''Set the usb downstream latency.'''
+        assert(self.bb)
+        status = bxySetUSBDownstreamLatency(self.bb, latency)
+        if status:
+            raise BeexyException(status)
+
+    def get_rs232_downstream_latency(self):
+        '''Get the rs232 downstream latency.'''
+        assert(self.bb)
+        lat = ct.c_uint(0)
+        status = bxyGetRS232DownstreamLatency(self.bb, lat)
+        if status:
+            raise BeexyException(status)
+        return int(lat)
+
+    def set_rs232_downstream_latency(self, latency):
+        '''Set the rs232 downstream latency.'''
+        assert(self.bb)
+        status = bxySetRS232DownstreamLatency(self.bb, latency)
+        if status:
+            raise BeexyException(status)
+
+    def get_uart_baudrate(self):
+        '''Get the uart baudrate.'''
+        assert(self.bb)
+        baud = ct.c_uint(0)
+        status = bxyGetUARTBaudRate(self.bb, baud)
+        if status:
+            raise BeexyException(status)
+        return int(baud)
+
+    def set_uart_baudrate(self, baudrate):
+        '''Set the rs232 downstream latency.'''
+        assert(self.bb)
+        status = bxySetUARTBaudRate(self.bb, baudrate)
+        if status:
+            raise BeexyException(status)
+
+    def get_feature_flags(self):
+        '''Get the feature flags'''
+        assert(self.bb)
+        features = ct.c_int(0)
+        status = bxyGetFeatureFlags(features)
+        if status:
+            raise BeexyException(status)
+
+    def set_feature_flags(self, clrflags, setflags, ack):
+        '''set the feature flags'''
+        assert(self.bb)
+        status = bxySetFeatureFlags(self.bb, clrflags, setflags, ack)
+        if status:
+            raise BeexyException(status)
 
     # Registration of callbacks
-
     def register_input_event_callback(self, functor):
         assert(self.bb)
         callback = INPUT_EVENT_FUNC(functor)
